@@ -2,22 +2,54 @@
 
 import { useState } from "react";
 
-export default function GenerateQuoteCard() {
+type Props = {
+  rfqId: number;
+};
+
+export default function GenerateQuoteCard({ rfqId }: Props) {
   const [loading, setLoading] = useState(false);
   const [finished, setFinished] = useState(false);
 
-  function generateQuote() {
+  async function generateQuote() {
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch("/api/quotations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rfq_id: rfqId,
+          material_cost: 230000,
+          machining_cost: 85000,
+          heat_treatment_cost: 40000,
+          inspection_cost: 12000,
+          packing_cost: 5000,
+          manufacturing_cost: 372000,
+          margin_percent: 18,
+          margin_amount: 66960,
+          final_price: 438960,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message);
+      }
+
       setFinished(true);
-    }, 4000);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to save quotation.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="rounded-2xl border border-gray-800 bg-[#0d1324] p-8">
-
       <h2 className="text-3xl font-bold">
         AI Costing Engine
       </h2>
@@ -37,29 +69,22 @@ export default function GenerateQuoteCard() {
 
       {loading && (
         <div className="mt-8 space-y-4">
-
           <ProgressItem text="Reading RFQ..." />
           <ProgressItem text="Analyzing Drawing..." />
           <ProgressItem text="Identifying Material..." />
           <ProgressItem text="Calculating Machining..." />
           <ProgressItem text="Generating Cost..." />
-
         </div>
       )}
 
       {finished && (
         <div className="mt-8 space-y-6">
-
           <div className="rounded-xl bg-green-500/10 p-4 text-green-400">
             ✓ AI Quote Generated Successfully
           </div>
 
           <div className="space-y-3">
-
-            <Row
-    label="Material"
-    value={`₹230000`}
-/>
+            <Row label="Material" value="₹2,30,000" />
             <Row label="Machining" value="₹85,000" />
             <Row label="Heat Treatment" value="₹40,000" />
             <Row label="Inspection" value="₹12,000" />
@@ -84,11 +109,9 @@ export default function GenerateQuoteCard() {
               value="₹4,38,960"
               bold
             />
-
           </div>
 
           <div className="flex flex-wrap gap-4 pt-4">
-
             <button className="rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-500">
               Download PDF
             </button>
@@ -100,12 +123,9 @@ export default function GenerateQuoteCard() {
             <button className="rounded-xl border border-gray-700 px-5 py-3 hover:border-blue-500">
               Send Customer
             </button>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
@@ -113,21 +133,14 @@ export default function GenerateQuoteCard() {
 function ProgressItem({ text }: { text: string }) {
   return (
     <div className="space-y-2">
-
       <div className="flex justify-between">
-
         <span>{text}</span>
-
         <span>✓</span>
-
       </div>
 
       <div className="h-2 rounded-full bg-gray-800">
-
         <div className="h-2 w-full animate-pulse rounded-full bg-blue-600"></div>
-
       </div>
-
     </div>
   );
 }
@@ -143,7 +156,6 @@ function Row({
 }) {
   return (
     <div className="flex justify-between">
-
       <span className={bold ? "text-xl font-bold" : "text-gray-400"}>
         {label}
       </span>
@@ -151,7 +163,6 @@ function Row({
       <span className={bold ? "text-xl font-bold" : ""}>
         {value}
       </span>
-
     </div>
   );
 }
